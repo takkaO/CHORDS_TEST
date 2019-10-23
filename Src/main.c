@@ -28,7 +28,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "tables.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +49,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+double idx = 0.0;
+double interval = 3.6;
 
 /* USER CODE END PV */
 
@@ -101,7 +103,7 @@ int main(void) {
 	/* USER CODE BEGIN 2 */
 	HAL_TIM_Base_Start_IT(&htim1);
 	HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 1000);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
@@ -157,6 +159,11 @@ void SystemClock_Config(void) {
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim) {
 	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
+	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sin_val[(unsigned int)idx]);
+	idx += interval;
+	if (idx >= RESOLUTION) {
+		idx = 0;
+	}
 }
 /* USER CODE END 4 */
 
