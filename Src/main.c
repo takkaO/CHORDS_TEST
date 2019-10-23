@@ -50,8 +50,9 @@
 
 /* USER CODE BEGIN PV */
 double idx = 0.0;
-double interval = 3.6;
-
+double interval = 32.42624; // C4 440Hz
+//double interval = 8.99;
+int flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,6 +110,10 @@ int main(void) {
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		if (HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin) == GPIO_PIN_RESET) {
+			flag = !flag;
+			while(HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin) == GPIO_PIN_RESET);
+		}
 		/* USER CODE END WHILE */
 
 		/* USER CODE BEGIN 3 */
@@ -159,7 +164,13 @@ void SystemClock_Config(void) {
 /* USER CODE BEGIN 4 */
 void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim) {
 	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
-	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sin_val[(unsigned int)idx]);
+	if (flag == 0) {
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+	}
+	else{
+		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sin_val[(unsigned int)idx]);
+	}
+
 	idx += interval;
 	if (idx >= RESOLUTION) {
 		idx = 0;
