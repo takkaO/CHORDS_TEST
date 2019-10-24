@@ -49,10 +49,15 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+double doremi[8] = { 19.2807897, 21.6419358, 24.3192378, 25.7367067, 28.8884635, 32.42624,
+		36.3972016, 38.5615057 };
 double idx = 0.0;
-double interval = 32.42624; // C4 440Hz
+double idx2 = 0.0;
+double interval = 0; // C4 440Hz
+double interval2 = 0;
 //double interval = 8.99;
 int flag = 0;
+int flag2 = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,14 +110,36 @@ int main(void) {
 	HAL_TIM_Base_Start_IT(&htim1);
 	HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
 	__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
+	uint32_t tick = HAL_GetTick();
+	uint8_t ii = 0;
+	interval = doremi[0];
+	interval2 = doremi[0];
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
+		if (HAL_GetTick() - tick > 1000) {
+			idx = 0;
+			idx2 = 0;
+			interval = doremi[ii];
+			ii++;
+			if (ii == 8) {
+				ii = 0;
+			}
+			tick = HAL_GetTick();
+		}
 		if (HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin) == GPIO_PIN_RESET) {
 			flag = !flag;
-			while(HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin) == GPIO_PIN_RESET);
+			HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
+			while (HAL_GPIO_ReadPin(SW1_GPIO_Port, SW1_Pin) == GPIO_PIN_RESET)
+				;
+		}
+		if (HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin) == GPIO_PIN_RESET) {
+			flag2 = !flag2;
+			HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+			while (HAL_GPIO_ReadPin(SW2_GPIO_Port, SW2_Pin) == GPIO_PIN_RESET)
+				;
 		}
 		/* USER CODE END WHILE */
 
@@ -166,15 +193,27 @@ void HAL_TIM_PWM_PulseFinishedCallback(TIM_HandleTypeDef *htim) {
 	HAL_GPIO_TogglePin(LED0_GPIO_Port, LED0_Pin);
 	if (flag == 0) {
 		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 0);
-	}
-	else{
-		__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sin_val[(unsigned int)idx]);
+	} else {
+		if (flag2 == 0) {
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, sin_val[(unsigned int )idx]);
+		} else {
+			__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, (sin_val[(unsigned int) idx] + sin_val[(unsigned int) idx2]) / 2);
+		}
+
 	}
 
 	idx += interval;
 	if (idx >= RESOLUTION) {
-		idx = 0;
+		idx = idx - (int) idx;
+		//idx = 0;
 	}
+
+	idx2 += interval2;
+	if (idx2 >= RESOLUTION) {
+		idx2 = idx2 - (int) idx2;
+		//idx2 = 0;
+	}
+
 }
 /* USER CODE END 4 */
 
